@@ -1,0 +1,27 @@
+{
+  "name": "frank-code",
+  "version": "0.0.1",
+  "description": "AI coding agent in Typescript",
+  "main": "src/main.ts",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:nodemon": "nodemon --watch src --ext ts --exec ts-node src/main.ts",
+    "dev": "npx tsx src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "openai": "^6.15.0"
+  }
+}
