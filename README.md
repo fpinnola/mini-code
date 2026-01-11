@@ -1,4 +1,4 @@
-# frank-code
+# mini-code
 
 This project implements a tiny cli coding agent built for educational purposes, and for some fun.
 

@@ -1,5 +1,5 @@
 {
-  "name": "frank-code",
+  "name": "mini-code",
   "version": "0.0.1",
   "description": "AI coding agent in Typescript",
   "main": "src/main.ts",
