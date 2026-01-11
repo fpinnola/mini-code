@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import "dotenv/config";
 import { readdir, readFile, writeFile } from "fs/promises";
-import path from "path";
 import readline from "node:readline";
 import { stdin as input, stdout as output } from "node:process";
 import {
@@ -10,25 +9,13 @@ import {
 } from "openai/resources/responses/responses.js";
 import { access, mkdir } from "node:fs/promises";
 import { constants } from "fs";
-import { dirname } from "node:path";
+import path, { dirname } from "node:path";
+import { isPathIgnored } from "./agentignore.js";
+import { resolveAbsolutePath } from "./helpers.js";
 
 const openai_client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });
-
-/**
- * Resolves any path (relative or absolute) to an absolute path
- * using the current working directory as the base.
- */
-export function resolveAbsolutePath(inputPath: string): string {
-  if (!inputPath) {
-    return process.cwd();
-  }
-
-  return path.isAbsolute(inputPath)
-    ? path.normalize(inputPath)
-    : path.resolve(process.cwd(), inputPath);
-}
 
 /**
  * Give a file path, returns the content of that file
@@ -44,15 +31,27 @@ async function readFileContent(filePath: string) {
  * Given a directory, returns all files and subdirectories
  */
 async function listFiles(dir: string = process.cwd()) {
-  const absolute_path = resolveAbsolutePath(dir);
-  const files = (await readdir(absolute_path, { withFileTypes: true })).map(
-    (file) => ({
-      filename: file.name,
-      type: file.isDirectory() ? "dir" : "file",
+  const absolutePath = resolveAbsolutePath(dir);
+  const entries = await readdir(absolutePath, { withFileTypes: true });
+
+  // Check files for visibility based on user settings
+  const withVisibility = await Promise.all(
+    entries.map(async (entry) => {
+      const fullPath = path.join(absolutePath, entry.name);
+      const ignored = await isPathIgnored(fullPath);
+      return { entry, ignored };
     })
   );
+
+  const files = withVisibility
+    .filter(({ ignored }) => !ignored)
+    .map(({ entry }) => ({
+      filename: entry.name,
+      type: entry.isDirectory() ? "dir" : "file",
+    }));
+
   return {
-    path: absolute_path,
+    path: absolutePath,
     files,
   };
 }
@@ -184,16 +183,29 @@ async function runTool(name: string, args: any): Promise<ToolResult> {
   switch (name) {
     case "list_files": {
       const dir = typeof args?.dir === "string" ? args.dir : process.cwd();
+      if (await isPathIgnored(dir)) {
+        throw new Error(`Access to path '${dir}' is denied by .agentignore`);
+      }
       return JSON.stringify(await listFiles(dir));
     }
     case "read_file": {
       const filePath = args.filePath;
+      if (await isPathIgnored(filePath)) {
+        throw new Error(
+          `Access to path '${filePath}' is denied by .agentignore`
+        );
+      }
       return JSON.stringify(await readFileContent(filePath));
     }
     case "edit_file": {
       const filePath = args.filePath;
       const oldContent = args.oldContent;
       const newContent = args.newContent;
+      if (await isPathIgnored(filePath)) {
+        throw new Error(
+          `Access to path '${filePath}' is denied by .agentignore`
+        );
+      }
       if (typeof filePath === "string" && filePath.trim() !== "") {
         const result = await editFile(filePath, oldContent, newContent);
         // result is a boolean
