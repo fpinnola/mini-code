@@ -7,6 +7,7 @@ This project implements a tiny cli coding agent built for educational purposes, 
 - A CLI-based agent that talks with you and can perform simple filesystem operations via a small toolset defined in main.ts.
 - Tools implemented: list_files, read_file, edit_file. These allow listing directories, reading file contents, and editing files via first-occurrence replacement (or creating new files).
 - The agent is hardcoded ot use OpenAI's `gpt-5.2` model.
+- An `.agentignore` file can be setup to hide any files or directories from the agent
 
 ### Requirements:
 
