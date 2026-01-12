@@ -11,7 +11,10 @@ import { access, mkdir } from "node:fs/promises";
 import { constants } from "fs";
 import path, { dirname } from "node:path";
 import { isPathIgnored } from "./agentignore.js";
-import { resolveAbsolutePath } from "./helpers.js";
+import {
+  resolveAbsolutePath,
+  verifyActionInWorkingDirectory,
+} from "./helpers.js";
 
 const openai_client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
@@ -23,6 +26,7 @@ const openai_client = new OpenAI({
  */
 async function readFileContent(filePath: string) {
   const absolutePath = resolveAbsolutePath(filePath);
+  verifyActionInWorkingDirectory(absolutePath);
   const fileContent = await readFile(absolutePath, "utf-8");
   return fileContent;
 }
@@ -32,6 +36,7 @@ async function readFileContent(filePath: string) {
  */
 async function listFiles(dir: string = process.cwd()) {
   const absolutePath = resolveAbsolutePath(dir);
+  verifyActionInWorkingDirectory(absolutePath);
   const entries = await readdir(absolutePath, { withFileTypes: true });
 
   // Check files for visibility based on user settings
@@ -85,6 +90,7 @@ async function editFile(
   newContent: string
 ): Promise<{ created: boolean; edited: boolean; path: string }> {
   const absolutePath = resolveAbsolutePath(filePath);
+  verifyActionInWorkingDirectory(absolutePath);
 
   const exists = await fileExists(absolutePath);
 
@@ -294,6 +300,7 @@ async function run() {
       rl.question("> ", resolve);
     });
 
+    // TODO: fix, this only seems to work sporadically
     erasePreviousPromptLine();
 
     // Handle input

@@ -11,3 +11,19 @@ export function resolveAbsolutePath(inputPath: string): string {
     ? path.normalize(inputPath)
     : path.resolve(process.cwd(), inputPath);
 }
+
+/**
+ * Verify that action is not taking place outside of the current working directory
+ */
+
+export function verifyActionInWorkingDirectory(absolutePath: string) {
+  const cwdRoot = process.cwd();
+  if (
+    absolutePath !== cwdRoot &&
+    !absolutePath.startsWith(cwdRoot + path.sep)
+  ) {
+    throw new Error(
+      `Access outside working directory is not allowed: ${absolutePath}`
+    );
+  }
+}
