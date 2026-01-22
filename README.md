@@ -25,3 +25,10 @@ npm run dev
 ### Notes:
 
 - This is a barebones coding agent, it does not have robust safety mechanisms, error handling, or planning functionality.
+
+### Roadmap:
+
+- Improved TUI with `ink` or `opentui`
+- Plan vs Build modes
+- Prompt optimization
+- Agent tracking interal list of TODOs before completion
